@@ -22,6 +22,7 @@ ros::Publisher imu_pub("/imu", &imu_msg);
 
 bool use_dmp = true;
 
+// Adapted from the tf ros package.
 void setRPY(const float roll, const float pitch, const float yaw, geometry_msgs::Quaternion& quat)
 {
     const float halfYaw = yaw * 0.5;
@@ -169,6 +170,8 @@ bool InitializeImu(const bool use_dmp)
 void setup()
 {
     // Initialize ROS.
+    constexpr int BAUD_RATE = 576000;
+    nh.getHardware()->setBaud(BAUD_RATE);
     nh.initNode();
     nh.advertise(imu_pub);
 
@@ -251,9 +254,9 @@ void loop()
             if ((data.header & DMP_header_bitmap_Gyro) > 0)
             {
                 // Extract the raw gyro data
-                imu_msg.angular_velocity.x = (float)data.Raw_Gyro.Data.X;
-                imu_msg.angular_velocity.y = (float)data.Raw_Gyro.Data.Y;
-                imu_msg.angular_velocity.z = (float)data.Raw_Gyro.Data.Z;
+                imu_msg.angular_velocity.x = DegreeToRadian((float)data.Raw_Gyro.Data.X);
+                imu_msg.angular_velocity.y = DegreeToRadian((float)data.Raw_Gyro.Data.Y);
+                imu_msg.angular_velocity.z = DegreeToRadian((float)data.Raw_Gyro.Data.Z);
                 imu_msg.angular_velocity_covariance[0] = -1;
             }
 
