@@ -47,7 +47,8 @@ float DegreeToRadian(const float deg)
 
 float MilliGToMeterSq(const float milli_g)
 {
-    return (milli_g / 1000) * 9.80665;
+    constexpr float EARTH_GRAVITY = 9.80665;
+    return (milli_g / 1000) * EARTH_GRAVITY;
 }
 
 bool InitializeImu(const bool use_dmp)
@@ -112,6 +113,18 @@ bool InitializeImu(const bool use_dmp)
     if (imu.status != ICM_20948_Stat_Ok)
     {
         nh.logerror("Failed to initialize orientation.");
+        return false;
+    }
+
+    // Set full scale.
+    ICM_20948_fss_t fss;
+    fss.a = ICM_20948_ACCEL_CONFIG_FS_SEL_e::gpm2;
+    fss.g = ICM_20948_GYRO_CONFIG_1_FS_SEL_e::dps250;
+    imu.setFullScale(INV_ICM20948_SENSOR_LINEAR_ACCELERATION, fss);
+    imu.setFullScale(INV_ICM20948_SENSOR_GYROSCOPE, fss);
+    if (imu.status != ICM_20948_Stat_Ok)
+    {
+        nh.logerror("Failed to set full scale.");
         return false;
     }
 
